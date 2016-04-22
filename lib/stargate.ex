@@ -43,9 +43,9 @@ defmodule Stargate do
   def send_there(aGate) do
     # See if we can send data from here. If so, send
     # the sent data to there. Otherwise, do nothing.
-    case Stargate.Gate.receive(aGate.there) do
+    case Stargate.Gate.receive(aGate.here) do
       :error -> :ok
-      {:ok, aHead} -> Stargate.Gate.send(aGate.here, aHead)
+      {:ok, aHead} -> Stargate.Gate.send(aGate.there, aHead)
     end
     # Return the gate itself. 
     aGate
@@ -69,7 +69,7 @@ defmodule Stargate.Gate do
   end
 
   @doc """
-    Sends the `aObject` currently through the stargate.
+    Sends the `aObject` through the stargate.
   """
   def send(aGate, aObject) do
     Agent.update(aGate, fn list -> [aObject|list] end)
