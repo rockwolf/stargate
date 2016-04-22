@@ -7,14 +7,20 @@ defmodule Stargate do
     import Supervisor.Spec, warn: false
 
     children = [
-      # Define workers and child supervisors to be supervised
-      # worker(Stargate.Worker, [arg1, arg2, arg3]),
+      worker(Stargate.Gate, [])
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
     # for other strategies and supported options
-    opts = [strategy: :one_for_one, name: Stargate.Supervisor]
+    opts = [strategy: :simple_one_for_one, name: Stargate.Supervisor]
     Supervisor.start_link(children, opts)
+  end
+
+  @doc """
+    Initiates a new gate with the given `aName`.
+  """
+  def initiate(aGate) do
+    Supervisor.start_child(Stargate.Gate, [aGate])
   end
   
   defstruct [:here, :there]
@@ -37,9 +43,9 @@ defmodule Stargate do
   def send_there(aGate) do
     # See if we can send data from here. If so, send
     # the sent data to there. Otherwise, do nothing.
-    case Stargate.Gate.send(aGate.here) do
+    case Stargate.Gate.receive(aGate.there) do
       :error -> :ok
-      {:ok, aHead} -> Stargate.Gate.send(aGate.there, aHead)
+      {:ok, aHead} -> Stargate.Gate.send(aGate.here, aHead)
     end
     # Return the gate itself. 
     aGate
@@ -79,5 +85,27 @@ defmodule Stargate.Gate do
       [] -> {:error, []}
       [zHead|zTail] -> {{:ok, zHead}, zTail}
     end)
+  end
+end
+
+defimpl Inspect, for: Stargate do
+  @doc """
+    Implementation of better printing of the state of stargate transfers.
+  """
+  def inspect(%Stargate{here: aHere, there: aThere}, _) do
+    zGate_here = inspect(aHere)
+    zGate_there = inspect(aThere)
+
+    zObjectList_here = inspect(Enum.reverse(Stargate.Gate.get(aHere)))
+    zObjectList_there = inspect(Stargate.Gate.get(aThere))
+
+    zMax = max(String.length(zGate_here), String.length(zObjectList_here))
+
+    """
+    #Stargate<
+      #{String.rjust(zGate_here, zMax)} <=> #{zGate_there}
+      #{String.rjust(zObjectList_here, zMax)} <=> #{zObjectList_there}
+    >
+    """
   end
 end
