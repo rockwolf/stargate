@@ -23,50 +23,45 @@ defmodule Stargate do
     Supervisor.start_child(Stargate.Supervisor, [aGate])
   end
   
-  defstruct [:here, :there]
+  defstruct [:source, :destination]
+  #defstruct [:send, :receive] // TODO: This is wrong. it belongs to the module.
 
   @doc """
-    Starts transfering `aObjectList` from `aHere` to `aThere`.
+    Starts transfering `aObjectList` from `aSource` to `aDestination`.
   """
-  def transfer(aHere, aThere, aObjectList) do
+  def transfer_start(aSource, aDestination, aObjectList) do
     # First add all objects to the Stargate here.
     for zObject <- aObjectList do
-      Stargate.Gate.send(aHere, zObject)
+      Stargate.Gate.send(aSource, zObject)
     end
     # Returns a Stargate struct we will use next
-    %Stargate{here: aHere, there: aThere}
+    %Stargate{source: aSource, destination: aDestination}
   end
 
   @doc """
-    Send or receive an object from `aGateSource`
-    to `aGateDestination`.
+    Send or receive an object from `aGate`
+    Note: aSendOrReceive should be either
+    `:send` or `:receive`.
   """
-  def transfer
-
-  @doc """
-    Sends an object to the `aGate` there.
-  """
-  def send_there(aGate) do
-    case Stargate.Gate.receive(aGate.here) do
-      :error -> :ok
-      {:ok, aHead} -> Stargate.Gate.send(aGate.there, aHead)
+  def transfer(aGate, aSendOrReceive) do
+    case aSendOrReceive do
+      :send -> transfer_internal(aGate.source, aGate.destination)
+      :receive -> transfer_internal(aGate.destination, aGate.source)
     end
-    # Return the gate itself. 
+    # Return the gate itself.
     aGate
   end
 
   @doc """
-    Receive an object to the `aGate` here.
+    Send an ObjectList, that's in the gates source,
+    to the gates destination.
   """
-  def receive_here(aGate) do
-    case Stargate.Gate.receive(aGate.there) do
+  def transfer_internal(aSource, aDestination) do
+    case Stargate.Gate.receive(aSource) do
       :error -> :ok
-      {:ok, aHead} -> Stargate.Gate.send(aGate.here, aHead)
+      {:ok, aHead} -> Stargate.Gate.send(aDestination, aHead)
     end
-    # Return the gate itself. 
-    aGate
   end
-
 end
 
 defmodule Stargate.Gate do
@@ -109,12 +104,12 @@ defimpl Inspect, for: Stargate do
   @doc """
     Implementation of better printing of the state of stargate transfers.
   """
-  def inspect(%Stargate{here: aHere, there: aThere}, _) do
-    zGate_here = inspect(aHere)
-    zGate_there = inspect(aThere)
+  def inspect(%Stargate{source: aSource, destination: aDestination}, _) do
+    zGate_here = inspect(aSource)
+    zGate_there = inspect(aDestination)
 
-    zObjectList_here = inspect(Enum.reverse(Stargate.Gate.get(aHere)))
-    zObjectList_there = inspect(Stargate.Gate.get(aThere))
+    zObjectList_here = inspect(Enum.reverse(Stargate.Gate.get(aSource)))
+    zObjectList_there = inspect(Stargate.Gate.get(aDestination))
 
     zMax = max(String.length(zGate_here), String.length(zObjectList_here))
 
