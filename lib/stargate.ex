@@ -17,10 +17,10 @@ defmodule Stargate do
   end
 
   @doc """
-    Initiates a new gate with the given `aName`.
+    Initiates a new gate with the given `aGate` name.
   """
   def initiate(aGate) do
-    Supervisor.start_child(Stargate.Gate, [aGate])
+    Supervisor.start_child(Stargate.Supervisor, [aGate])
   end
   
   defstruct [:here, :there]
