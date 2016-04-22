@@ -50,6 +50,21 @@ defmodule Stargate do
     # Return the gate itself. 
     aGate
   end
+
+  @doc """
+    Receive an object to the `aGate` here.
+  """
+  def receive_here(aGate) do
+    # See if we can send data from there. If so, send
+    # the sent data to here. Otherwise, do nothing.
+    case Stargate.Gate.receive(aGate.there) do
+      :error -> :ok
+      {:ok, aHead} -> Stargate.Gate.send(aGate.here, aHead)
+    end
+    # Return the gate itself. 
+    aGate
+  end
+
 end
 
 defmodule Stargate.Gate do
