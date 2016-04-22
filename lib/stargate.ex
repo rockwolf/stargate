@@ -38,11 +38,15 @@ defmodule Stargate do
   end
 
   @doc """
+    Send or receive an object from `aGateSource`
+    to `aGateDestination`.
+  """
+  def transfer
+
+  @doc """
     Sends an object to the `aGate` there.
   """
   def send_there(aGate) do
-    # See if we can send data from here. If so, send
-    # the sent data to there. Otherwise, do nothing.
     case Stargate.Gate.receive(aGate.here) do
       :error -> :ok
       {:ok, aHead} -> Stargate.Gate.send(aGate.there, aHead)
@@ -55,8 +59,6 @@ defmodule Stargate do
     Receive an object to the `aGate` here.
   """
   def receive_here(aGate) do
-    # See if we can send data from there. If so, send
-    # the sent data to here. Otherwise, do nothing.
     case Stargate.Gate.receive(aGate.there) do
       :error -> :ok
       {:ok, aHead} -> Stargate.Gate.send(aGate.here, aHead)
