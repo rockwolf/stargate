@@ -22,7 +22,7 @@ defmodule Stargate do
   def initiate(aGate) do
     Supervisor.start_child(Stargate.Supervisor, [aGate])
   end
-  
+
   defstruct [:source, :destination]
   #defstruct [:send, :receive] // TODO: This is wrong. it belongs to the module.
 
